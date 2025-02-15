@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Language Discovery</title>
+    <title>Real-World Love Language Quiz</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,20 +18,16 @@
             margin: auto;
             padding: 20px;
         }
-        .card {
-            display: inline-block;
-            padding: 15px;
-            margin: 10px;
-            background: #ff85a2;
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: transform 0.3s;
+        #note {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-weight: 700;
+          height: 40px;
+          margin-top: 10;
+          margin-bottom: 10;
         }
-        .card:hover {
-            transform: scale(1.1);
-        }
-        .option, #start-quiz, .share-btn, #new-challenge {
+        .option, #start-quiz {
             padding: 10px;
             background: #ff4d79;
             border: none;
@@ -39,93 +35,152 @@
             cursor: pointer;
             margin: 5px;
             border-radius: 5px;
+            transition: transform 0.2s;
         }
-        .option:hover, #start-quiz:hover, .share-btn:hover, #new-challenge:hover {
+        .option:hover, #start-quiz:hover {
             background: #cc3c61;
+            transform: scale(1.1);
         }
-        .bar-container {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
+        #thank-you-message {
+            display: none;
+            font-size: 24px;
+            color: #ff4d79;
+            margin-top: 20px;
+            animation: popIn 1s ease-in-out;
         }
-        .bar {
-            width: 50px;
+       
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
             height: 10px;
             background: #ff4d79;
-            transition: width 0.5s;
+            opacity: 0.7;
+            animation: fall 3s linear infinite;
         }
-        .expand-btn {
-            cursor: pointer;
+        @keyframes fall {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+        #results-container {
+            display: none;
+            margin-top: 20px;
             font-size: 20px;
-            padding: 5px;
-        }
-        .marker {
-            cursor: pointer;
-            padding: 5px;
-            display: inline-block;
-            background: #ff85a2;
-            border-radius: 5px;
-            margin: 5px;
+            color: #333;
         }
     </style>
 </head>
 <body>
     <div id="app-container">
-        <section id="hero">
-            <h1 class="title">Discover Your Love Language</h1>
-            <p class="subtitle">Understanding how you give and receive love</p>
-            <div id="language-cards">
-                <div class="card" data-language="words">Words of Affirmation</div>
-                <div class="card" data-language="acts">Acts of Service</div>
-                <div class="card" data-language="gifts">Receiving Gifts</div>
-                <div class="card" data-language="time">Quality Time</div>
-                <div class="card" data-language="touch">Physical Touch</div>
-            </div>
-        </section>
-
         <section id="quiz-section">
-            <h2>What's Your Primary Love Language?</h2>
+            <h2>🎉 Real-World Love Language Quiz 🎉</h2>
             <div id="quiz-container">
+              <div id="note">Note : Based on your Answers you will get Companion</div>
                 <div id="question-display">Click Start to Begin</div>
-                <div id="options-container">
-                    <button class="option" data-value="0">Option 1</button>
-                    <button class="option" data-value="1">Option 2</button>
-                    <button class="option" data-value="2">Option 3</button>
-                </div>
+                <div id="options-container"></div>
                 <button id="start-quiz">Start Quiz</button>
             </div>
+            <div id="thank-you-message">🎊 Thank You for Completing the Quiz! 🎊</div>
+            <div id="results-container"></div>
         </section>
     </div>
-
+    <div id="confetti"></div>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            let quizStarted = false;
-            const questionDisplay = document.getElementById("question-display");
-            const options = document.querySelectorAll(".option");
-            const startButton = document.getElementById("start-quiz");
             const questions = [
-                "What makes you feel most loved?",
-                "How do you show affection?",
-                "What do you value in relationships?"
-            ];
-            let questionIndex = 0;
-
-            startButton.addEventListener("click", function() {
-                if (!quizStarted) {
-                    quizStarted = true;
-                    questionDisplay.textContent = questions[questionIndex];
+                { 
+                    question: "Your partner surprises you with a handwritten love note. How do you feel?",
+                    options: ["I cherish it and read it multiple times", "I appreciate it but prefer actions", "I don’t find it that important"]
+                },
+                {
+                    question: "You come home to a clean house because your partner cleaned it for you. How does this make you feel?",
+                    options: ["I feel loved and cared for", "It’s nice but I’d rather have quality time", "It’s good but I prefer gifts"]
+                },
+                {
+                    question: "Your loved one gives you a meaningful gift out of nowhere. How do you respond?",
+                    options: ["I feel deeply appreciated", "I’d prefer a hug or kind words", "Gifts are nice but not my top priority"]
+                },
+                {
+                    question: "You and your best friend have a long heart-to-heart conversation. How does that affect you?",
+                    options: ["I feel connected and valued", "It’s nice but I prefer actions over words", "I appreciate it, but gifts make me feel loved"]
+                },
+                {
+                    question: "Your partner plans a surprise date for you. How do you feel?",
+                    options: ["I love spending quality time together", "I appreciate it but prefer small daily gestures", "Surprises are fun but I prefer heartfelt words"]
                 }
-            });
+            ];
+            
+            const actressNames = ["Emma Watson", "Scarlett Johansson", "Gal Gadot", "Jennifer Lawrence", "Margot Robbie", "Anne Hathaway", "Zendaya", "Natalie Portman", "Angelina Jolie", "Priyanka Chopra"];
+            
+            let questionIndex = 0;
+            let answers = [];
+            const questionDisplay = document.getElementById("question-display");
+            const optionsContainer = document.getElementById("options-container");
+            const startButton = document.getElementById("start-quiz");
+            const thankYouMessage = document.getElementById("thank-you-message");
+            const resultsContainer = document.getElementById("results-container");
+            const confettiContainer = document.getElementById("confetti");
 
-            options.forEach(option => {
-                option.addEventListener("click", function() {
-                    questionIndex++;
-                    if (questionIndex < questions.length) {
-                        questionDisplay.textContent = questions[questionIndex];
-                    } else {
-                        questionDisplay.textContent = "Quiz Complete! Check your results.";
-                    }
+            function loadQuestion() {
+                if (questionIndex < questions.length) {
+                    questionDisplay.textContent = questions[questionIndex].question;
+                    optionsContainer.innerHTML = "";
+                    questions[questionIndex].options.forEach(option => {
+                        const button = document.createElement("button");
+                        button.classList.add("option");
+                        button.textContent = option;
+                        button.addEventListener("click", () => {
+                            answers.push({ question: questions[questionIndex].question, answer: option });
+                            questionIndex++;
+                            loadQuestion();
+                        });
+                        optionsContainer.appendChild(button);
+                    });
+                } else {
+                    questionDisplay.textContent = "";
+                    optionsContainer.innerHTML = "";
+                    thankYouMessage.style.display = "block";
+                    resultsContainer.style.display = "block";
+                    showResults();
+                    launchConfetti();
+                }
+            }
+            
+            function showResults() {
+                resultsContainer.innerHTML = "<h3>Your Answers:</h3>";
+                const randomActress = actressNames[Math.floor(Math.random() * actressNames.length)];
+                resultsContainer.innerHTML += `<h2>💖 Your Celebrity Companion: ${randomActress} 💖</h2>`;
+                answers.forEach((entry, index) => {
+                    resultsContainer.innerHTML += `<p><strong>Q${index + 1}:</strong> ${entry.question}<br><strong>Answer:</strong> ${entry.answer}</p>`;
                 });
+              
+            }
+            
+            function launchConfetti() {
+                for (let i = 0; i < 100; i++) {
+                    let confettiPiece = document.createElement("div");
+                    confettiPiece.classList.add("confetti-piece");
+                    confettiPiece.style.left = Math.random() * 100 + "vw";
+                    confettiPiece.style.animationDuration = Math.random() * 3 + 2 + "s";
+                    confettiContainer.appendChild(confettiPiece);
+                }
+            }
+            
+            startButton.addEventListener("click", function() {
+                startButton.style.display = "none";
+                loadQuestion();
             });
         });
     </script>
